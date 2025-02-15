@@ -30,11 +30,11 @@ db.connect(err => {
     if (err) throw err;
     console.log('Connected to MySQL');
 
-    db.query("CREATE DATABASE IF NOT EXISTS ecommercek", (err) => {
+    db.query("CREATE DATABASE IF NOT EXISTS freedb_eccom", (err) => {
         if (err) throw err;
         console.log("Database created or exists");
 
-        db.changeUser({ database: 'ecommercek' }, (err) => {
+        db.changeUser({ database: 'freedb_eccom' }, (err) => {
             if (err) throw err;
             
             const createUsers = `
