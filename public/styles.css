@@ -1,0 +1,192 @@
+@import url('https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css');
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+}
+
+
+.card {
+    border-radius: 8px;
+    
+    
+    text-align: left;
+
+}
+
+.card img {
+    height: 180px;
+    object-fit: cover;
+}
+card-title {
+    margin-bottom: 4px; /* Reduce spacing below product name */
+}
+
+.card-text {
+    margin-bottom: 2px; /* Reduce spacing below price and condition */
+}
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+}
+
+.container {
+    max-width: 900px;
+    margin: auto;
+}
+
+.search-bar input {
+    width: 250px;
+    border: 1px solid #ccc;
+}
+
+.nav-tabs .nav-item {
+            flex: 1;
+        }
+
+        .nav-tabs .nav-link {
+            border: none;
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 16px;
+            color: #555;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: 0.3s;
+        }
+
+        .nav-tabs .nav-link.active {
+            background: #28a745;
+            color: white;
+        }
+
+.card {
+    border-radius: 20px;
+}
+
+.card img {
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+.list-group-item {
+    border-radius: 8px;
+    transition: background 0.3s;
+}
+
+.list-group-item:hover {
+    background-color: #424242;
+}
+
+.service-img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+
+/* ✅ Navbar */
+.navbar {
+    display: flex;
+    align-items: center;
+    background-color: #01579b;
+    padding: 15px;
+    color: white;
+    font-size: 20px;
+}
+
+.menu-icon {
+    font-size: 25px;
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+/* ✅ Sidebar */
+.sidebar {
+    position: fixed;
+    left: -250px;
+    width: 250px;
+    background: #222;
+    height: 100%;
+    padding-top: 60px;
+    transition: 0.3s;
+}
+
+.sidebar.active {
+    left: 0;
+}
+
+.sidebar a {
+    padding: 10px;
+    display: block;
+    color: white;
+    text-decoration: none;
+}
+
+.sidebar a:hover {
+    background: #555;
+}
+
+/* ✅ Container */
+.container {
+    margin: 20px;
+}
+
+/* ✅ Product Grid */
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1px;
+}
+
+.product-card {
+    background: #f8f9fa;
+    padding: 10px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.product-card img {
+    width: 100%;
+    height: auto;
+    border-radius: 5px;
+}
+
+/* ✅ Services List */
+.service-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.service-item {
+    display: flex;
+    align-items: center;
+    background: #f8f9fa;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.service-item img {
+    width: 80px;
+    height: 80px;
+    border-radius: 5px;
+    margin-right: 10px;
+}
+
+/* ✅ Buttons */
+.add-btn {
+    display: block;
+    text-align: center;
+    background: #198754;
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    text-decoration: none;
+    margin: 10px 0;
+}
+
+
