@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Add Product - eBay Clone</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="card shadow-sm p-4">
+            <h2 class="text-center">Add a New Product</h2>
+            <form action="/add_product" method="post" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label>Product Name</label>
+                    <input type="text" class="form-control" name="name" placeholder="Enter product name" required>
+                </div>
+                <div class="mb-3">
+                    <label>Seller Location</label>
+                    <input type="text" class="form-control" name="location" placeholder="Enter seller location" required>
+                </div>
+               <div class="mb-3">
+                        <select name="condition" class="form-control">
+                            <option value="Brand New">Brand New</option>
+                            <option value="Pre-owned">Pre-owned</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                    <label>Product description</label>
+                    
+                <textarea name="description" class="form-control" required></textarea>
+
+                   </div>
+                <div class="mb-3">
+                    <label>Price (UGX)</label>
+                    <input type="number" class="form-control" name="price" placeholder="Enter price" required>
+                </div>
+                <div class="mb-3">
+                    <label>Product Image</label>
+                    <input type="file" class="form-control" name="image" required>
+                </div>
+                <button type="submit" class="btn btn-success w-100">Add Product</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
