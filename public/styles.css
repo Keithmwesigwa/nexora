@@ -35,10 +35,7 @@ body {
     margin: auto;
 }
 
-.search-bar input {
-    width: 250px;
-    border: 1px solid #ccc;
-}
+
 
 .nav-tabs .nav-item {
             flex: 1;
