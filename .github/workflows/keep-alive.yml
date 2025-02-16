@@ -1,0 +1,12 @@
+name: Keep Render Service Alive
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"  # Runs every 5 minutes
+
+jobs:
+  keep_alive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Render Service
+        run: curl -s https://nexora-1.onrender.com/dashboard || echo "Ping failed"
