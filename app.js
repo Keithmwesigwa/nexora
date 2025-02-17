@@ -12,7 +12,7 @@ const multer = require('multer');
 const app = express();
 
 // Middleware
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static('public'));
 app.use(session({ secret: 'secret', resave: false, saveUninitialized: false }));
 app.use(passport.initialize());
@@ -24,6 +24,7 @@ const db = mysql.createConnection({
     host: 'sql.freedb.tech',
     user: 'freedb_orign',
     password: 'Km&z34Zqu6#JP8n',
+    
 });
 
 db.connect(err => {
@@ -37,7 +38,7 @@ db.connect(err => {
         db.changeUser({ database: 'freedb_eccom' }, (err) => {
             if (err) throw err;
             
-            const createUsers = `
+      const createUsers = `
                 CREATE TABLE IF NOT EXISTS users (
                     id INT AUTO_INCREMENT PRIMARY KEY,
                     username VARCHAR(50) NOT NULL UNIQUE,
@@ -146,26 +147,42 @@ app.post('/register', (req, res) => {
 
 app.post('/login', passport.authenticate('local', { successRedirect: '/dashboard', failureRedirect: '/login' }));
 
-// Set up multer for image uploads
-const storage = multer.diskStorage({
-    destination: './public/uploads/',
-    filename: (req, file, cb) => {
-        cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+
+cloudinary.config({
+    cloud_name: "dpgf8pzuo",
+    api_key: "385877743365342",
+    api_secret: "JtqBAwRyAxzuD379sH5PR1NM8vM"
+});
+
+// Configure Multer to use Cloudinary Storage
+const storage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+        folder: 'uploads', // Cloudinary folder name
+        allowed_formats: ['jpg', 'jpeg', 'png' , 'webp'
+        ,],
+         quality: "auto",  // Cloudinary automatically adjusts the quality
     }
 });
 const upload = multer({ storage });
-// Route to add a product
+
+
+
 app.post('/add_product', upload.single('image'), (req, res) => {
-    const { name, price,description ,location,condition} = req.body;
-    const image = req.file ? `/uploads/${req.file.filename}` : '/uploads/default.png';
-    const seller_user = req.user.username; // TODO: Replace with the logged-in user's ID when authentication is implemented.
+    const { name, price, description, location, condition } = req.body;
+    const image = req.file ? req.file.path : null; // Cloudinary URL
+
+    const seller_user = req.user.username;
 
     const sql = 'INSERT INTO products (name, price, image, seller_user, description, product_location, product_condition) VALUES (?, ?, ?, ?, ?, ?, ?)';
-    db.query(sql, [name, price, image, seller_user, description,location,condition], (err) => {
+    db.query(sql, [name, price, image, seller_user, description, location, condition], (err) => {
         if (err) throw err;
         res.redirect('/dashboard');
     });
 });
+
 
 app.get('/dashboard', (req, res) => {
 
@@ -183,7 +200,7 @@ app.get('/api/dashboard', (req, res) => {
     db.query('SELECT * FROM products', (err, products) => {
         if (err) throw err;
 
-        db.query('SELECT * FROM services', (err, services) => {
+        db.query('SELECT * FROM products', (err, services) => {
             if (err) throw err;
 
             res.json({ products, services });
@@ -223,12 +240,12 @@ app.get('/product/:id', (req, res) => {
 
                 /* Price Section */
                 .price-section { display: flex; justify-content: space-between; padding: 8px; align-items: center; border-bottom: 1px solid #ddd; }
-                .price { font-size: 1.3em; font-weight: bold; color:  #198754; }
+                .price { font-size: 1.3em; font-weight: bold; color:  #4285F4; }
                 .badge { font-size: 0.8em; padding: 3px 6px; border-radius: 5px; background: #e9ecef; }
 
                 /* Buy Button */
-                .buy-btn { width: 100%; font-size: 1em; padding: 8px; font-weight: bold; background-color:  #198754; border: none; color: #fff; border-radius: 5px; }
-                .buy-btn:hover { background-color:  #198754; }
+                .buy-btn { width: 100%; font-size: 1em; padding: 8px; font-weight: bold; background-color:  #4285F4; border: none; color: #fff; border-radius: 5px; }
+                .buy-btn:hover { background-color:  #4285F4; }
             </style>
         </head>
         <body>
@@ -294,16 +311,7 @@ app.get('/product/:id', (req, res) => {
                     </div>
                 </div>
 
-                <div class="row-section">
-                    <div>
-                        <div class="section-title"><i class="fas fa-palette icon"></i> Color</div>
-                        <p>${product.color || "No information available."}</p>
-                    </div>
-                    <div>
-                        <div class="section-title"><i class="fas fa-cube icon"></i> Material</div>
-                        <p>${product.material || "No information available."}</p>
-                    </div>
-                </div>
+                
 
                 <div class="section">
                     <div class="section-title"><i class="fas fa-map-marker-alt icon"></i> Location</div>
@@ -332,113 +340,11 @@ app.get('/add_product', (req, res) => {
 });
 //services
 
-app.get('/add_service', (req, res) => {
-    let addServiceHTML = `
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <title>Add Service</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    </head>
-    <body>
-        <div class="container mt-4">
-            <h3>Add a New Service</h3>
-            <form action="/add_service" method="POST" enctype="multipart/form-data">
-                <label class="form-label">Service Name:</label>
-                <input type="text" name="name" class="form-control" required>
-
-                <label class="form-label mt-2">Category:</label>
-                <select name="category" class="form-control" required>
-                    <option value="Events Management">Events Management</option>
-                    <option value="Catering">Catering</option>
-                    <option value="Jewelry Shop">Jewelry Shop</option>
-                    <option value="Tech Gadgets">Tech Gadgets</option>
-                    <option value="Plumbing">Plumbing</option>
-                </select>
-
-                <label class="form-label mt-2">Description:</label>
-                <textarea name="description" class="form-control" required></textarea>
-
-                <label class="form-label mt-2">Contact:</label>
-                <input type="text" name="contact" class="form-control" required>
-
-                <label class="form-label mt-2">Base Image:</label>
-                <input type="file" name="base_image" class="form-control" required>
-
-                <label class="form-label mt-2">Additional Images:</label>
-                <input type="file" name="image1" class="form-control">
-                <input type="file" name="image2" class="form-control">
-                <input type="file" name="image3" class="form-control">
-
-                <label class="form-label mt-2">Social Media Handles (optional):</label>
-                <input type="text" name="social_media" class="form-control">
-
-                <label class="form-label mt-2">Website (optional):</label>
-                <input type="text" name="website" class="form-control">
-
-                <button type="submit" class="btn btn-primary mt-3">Add Service</button>
-            </form>
-        </div>
-    </body>
-    </html>`;
-
-    res.send(addServiceHTML);
-});
-
-app.post('/add_service', upload.fields([
-    { name: 'base_image', maxCount: 1 },
-    { name: 'image1', maxCount: 1 },
-    { name: 'image2', maxCount: 1 },
-    { name: 'image3', maxCount: 1 }
-]), (req, res) => {
-    const { name, category, description, contact, social_media, website } = req.body;
-    const base_image = req.files['base_image'] ? `/uploads/${req.files['base_image'][0].filename}` : null;
-    const image1 = req.files['image1'] ? `/uploads/${req.files['image1'][0].filename}` : null;
-    const image2 = req.files['image2'] ? `/uploads/${req.files['image2'][0].filename}` : null;
-    const image3 = req.files['image3'] ? `/uploads/${req.files['image3'][0].filename}` : null;
-const seller_user=req.user.username
-    db.query(`
-        INSERT INTO services (name, category, description, base_image, image1, image2, image3, contact, social_media, website,seller_user)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `, [name, category, description, base_image, image1, image2, image3, contact, social_media, website,seller_user], (err) => {
-        if (err) throw err;
-        res.redirect('/dashboard');
-    });
-});
 
 
-app.get('/service/:id', (req, res) => {
-    const serviceId = req.params.id;
-    db.query('SELECT * FROM services WHERE id = ?', [serviceId], (err, results) => {
-        if (err) throw err;
-        if (results.length === 0) return res.send('Service not found.');
 
-        const service = results[0];
 
-        res.send(`
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <title>${service.name}</title>
-            <meta name="viewport" content="width=device-width, initial-scale=1">
-            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-        </head>
-        <body>
-            <div class="container mt-4">
-                <img src="${service.base_image}" class="img-fluid mb-3">
-                <h3>${service.name}</h3>
-                <p><strong>Category:</strong> ${service.category}</p>
-                <p>${service.description}</p>
-                <p><strong>Contact:</strong> ${service.contact}</p>
-       see        ${service.website ? `<p><strong>Website:</strong> <a href="${service.website}" target="_blank">${service.website}</a></p>` : ''}
-                ${service.social_media ? `<p><strong>Social Media:</strong> ${service.social_media}</p>` : ''}
-            </div>
-        </body>
-        </html>
-        `);
-    });
-});
+
 
 
 app.get('/search', (req, res) => {
@@ -447,9 +353,7 @@ app.get('/search', (req, res) => {
     db.query(`SELECT * FROM products WHERE name LIKE ?`, [`%${query}%`], (err, productResults) => {
         if (err) throw err;
 
-        db.query(`SELECT * FROM services WHERE name LIKE ?`, [`%${query}%`], (err, serviceResults) => {
-            if (err) throw err;
-
+        
             let productHTML = productResults.map(product => `
                 <div class="col-6 col-md-4 col-lg-3 mb-3">
                     <a href="/product/${product.id}" class="text-decoration-none">
@@ -464,34 +368,14 @@ app.get('/search', (req, res) => {
                 </div>
             `).join('');
 
-            let serviceHTML = serviceResults.map(service => `
-                <a href="/service/${service.id}" class="list-group-item d-flex align-items-center">
-                    <img src="${service.base_image}" class="me-3" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px;">
-                    <div>
-                        <h6>${service.name}</h6>
-                        <p>${service.description.substring(0, 80)}...</p>
-                    </div>
-                </a>
-            `).join('');
+           
 
-            res.send(`<div class="container"><h4>Search Results</h4>${productHTML}${serviceHTML}</div>`);
-        });
+            res.send(`<div class="container"><h4>Search Results</h4>${productHTML}</div>`);
+      
     });
 });
 
-app.get('/my-productsi', (req, res) => {
-    const userId = req.user.username;
 
-    db.query('SELECT * FROM products WHERE seller_user = ?', [userId], (err, products) => {
-        if (err) throw err;
-
-        db.query('SELECT * FROM services WHERE seller_user = ?', [userId], (err, services) => {
-            if (err) throw err;
-
-            res.json({ products, services });
-        });
-    });
-});
 
 app.get('/my-products', (req, res) => {
     if (!req.isAuthenticated()) {
@@ -503,8 +387,7 @@ app.get('/my-products', (req, res) => {
     db.query('SELECT * FROM products WHERE seller_user = ?', [userId], (err, products) => {
         if (err) throw err;
 
-        db.query('SELECT * FROM services WHERE seller_user = ?', [userId], (err, services) => {
-            if (err) throw err;
+        
 
             // ✅ Build HTML response dynamically
             let html = `
@@ -516,21 +399,27 @@ app.get('/my-products', (req, res) => {
                 <title>My Products & Services</title>
                 <style>
                     body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f4f4f4; }
-                    .navbar { background: #008000; padding: 10px; color: white; font-size: 18px; display: flex; align-items: center; }
+                    .navbar { background: #232f3e; padding: 10px; color: white; font-size: 18px; display: flex; align-items: center; }
                     .menu-icon { cursor: pointer; font-size: 24px; margin-right: 10px; }
                     .container { padding: 20px; }
                     .product-grid, .service-list { display: flex; flex-wrap: wrap; gap: 15px; }
                     .product-card, .service-item { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); width: 45%; }
                     .product-card img, .service-item img { width: 100%; border-radius: 5px; }
-                    .add-btn { display: block; text-align: center; background: #008000; color: white; padding: 10px; text-decoration: none; border-radius: 5px; margin-top: 15px; }
+                    .add-btn { display: block; text-align: center; background: #4285F4; color: white; padding: 10px; text-decoration: none; border-radius: 5px; margin-top: 15px; }
                     .buttons { margin-top: 20px; text-align: center; }
                 </style>
             </head>
             <body>
 
                 <nav class="navbar">
-                    <span class="menu-icon" onclick="toggleMenu()">☰</span>
-                    My Products & Services
+                    <a href="/dashboard">
+  <span class="menu-icon">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="15 18 9 12 15 6"></polyline>
+    </svg>
+    Back
+  </span>
+</a>  Seller Dashboard 
                 </nav>
 
                 <div class="container">
@@ -544,69 +433,94 @@ app.get('/my-products', (req, res) => {
                         <h3>${product.name}</h3>
                         <p>UGX ${product.price}</p>
                         <a href="/edit_product/${product.id}" class="text-decoration-none"> <button >✏ Edit</button></a>
-                        <button onclick="deleteProduct('${product.id}')">🗑 Delete</button>
+                       <a href="/delete_product/${product.id}" class="text-decoration-none"> <button>🗑 Delete</button></a>
                     </div>`;
             });
 
-            html += `
-                    </div>
-                    <h2>Your Services</h2>
-                    <div class="service-list">`;
-
-            services.forEach(service => {
-                html += `
-                    <div class="service-item">
-                        <img src="${service.base_image}" alt="Service Image" width="100">
-                        <div>
-                            <h3>${service.service_name}</h3>
-                            <p>${service.description}</p>
-                             <a href="/edit_service/${service.id}" class="text-decoration-none"> <button>✏ Edit</button></a>
-                            <button onclick="deleteService('${service.id}')">🗑 Delete</button>
-                        </div>
-                    </div>`;
-            });
+            
+            
 
             html += `
                     </div>
                     <div class="buttons">
                         <a href="/add_product" class="add-btn">➕ Add Product</a>
-                        <a href="/add_service" class="add-btn">➕ Add Service</a>
-                    </div>
+                      </div>
                 </div>`
                 
                 res.send(html)
                 
-})
+
 })
                 
 
 })
-app.post('/update_product/:id',upload.single('image') , (req, res) => {
-	const id=req.params.id
-    const { name, price,description ,location,condition} = req.body;
-   const image = req.file ? `/uploads/${req.file.filename}` : '/uploads/default.png';
+
   
- 
-   console.log(`Updating product ID: ${id}, Name: ${name}, Price: ${price}, Description: ${description}`);
-console.log(name)
+  app.post('/update_product/:id', upload.single('image'), (req, res) => {
+    const id = req.params.id;
+    const { name, price, description, location, condition } = req.body;
+
+    // Step 1: Fetch existing product details
+    db.query('SELECT * FROM products WHERE id = ?', [id], (err, results) => {
+        if (err) {
+            console.error('Error fetching product:', err);
+            return res.status(500).json({ error: 'Error fetching product details' });
+        }
+        
+        if (results.length === 0) return res.send("Product not found");
+
+        let product = results[0];
+        let oldImageUrl = product.image; // Existing image URL
+
+        // Step 2: Check if a new image was uploaded
+        if (req.file) {
+            // Upload new image to Cloudinary
+            cloudinary.uploader.upload(req.file.path, (cloudErr, cloudResult) => {
+                if (cloudErr) {
+                    console.error("Cloudinary upload error:", cloudErr);
+                    return res.status(500).json({ error: "Error uploading to Cloudinary" });
+                }
+
+                let newImageUrl = cloudResult.secure_url; // New Cloudinary image URL
+
+                // Step 3: Delete old image from Cloudinary (if applicable)
+                if (oldImageUrl.includes("cloudinary")) {
+                    let publicId = oldImageUrl.split('/').pop().split('.')[0]; // Extract public ID
+
+                    cloudinary.uploader.destroy(publicId, (deleteErr, deleteResult) => {
+                        if (deleteErr) console.error("Cloudinary delete error:", deleteErr);
+                        console.log("Cloudinary delete result:", deleteResult);
+
+                        // Step 4: Update database with new image URL
+                        updateProductInDB(id, name, price, newImageUrl, description, location, condition, res);
+                    });
+                } else {
+                    // If old image wasn't from Cloudinary, just update DB
+                    updateProductInDB(id, name, price, newImageUrl, description, location, condition, res);
+                }
+            });
+        } else {
+            // No new image uploaded, just update other fields
+            updateProductInDB(id, name, price, oldImageUrl, description, location, condition, res);
+        }
+    });
+});
+
+// Function to update the product in the database
+function updateProductInDB(id, name, price, image, description, location, condition, res) {
     db.query(
-        'UPDATE products SET name = ?, price = ?, image= ?, description = ? WHERE id = ?',
-        [name, price, image, description, id],
+        'UPDATE products SET name = ?, price = ?, image = ?, description = ?, product_location = ?, product_condition = ? WHERE id = ?',
+        [name, price, image, description, location, condition, id],
         (err, result) => {
             if (err) {
                 console.error('Update Product Error:', err);
                 return res.status(500).json({ error: 'Error updating product' });
             }
             console.log('Update Result:', result);
-                        res.redirect("/my-products")
+            res.redirect("/my-products");
         }
-       
     );
- 
- 
- 
- 
-  })
+}
 app.get('/edit_product/:id', (req, res) => {
     let productId = req.params.id;
     db.query('SELECT * FROM products WHERE id = ?', [productId], (err, results) => {
@@ -671,102 +585,95 @@ app.get('/edit_product/:id', (req, res) => {
         res.send(productDetailsHTML);
     });
 });
-app.get('/edit_service/:id', (req, res) => {
+app.get('/delete_product/:id', (req, res) => {
     let productId = req.params.id;
-    db.query('SELECT * FROM services WHERE id = ?', [productId], (err, results) => {
+    db.query('SELECT * FROM products WHERE id = ?', [productId], (err, results) => {
         if (err) throw err;
         if (results.length === 0) return res.send("Product not found");
 
-        let service = results[0];
+        let product = results[0];
 
-        let productDetailsHTML = `
+        let deleteConfirmHTML = `
         <!DOCTYPE html>
         <html lang="en">
         <head>
-            <title>${service.name} - Product Details</title>
+            <title>Delete ${product.name}?</title>
             <meta name="viewport" content="width=device-width, initial-scale=1">
             <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
             <style>
                 body { background-color: #f8f9fa; font-family: Arial, sans-serif; }
-                .container { max-width: 600px; margin: auto; }
-                .product-img { width: 100%; height: 300px; object-fit: cover; border-radius: 8px; }
-                .back-btn { display: block; margin-top: 10px; }
+                .container { max-width: 500px; margin: auto; text-align: center; padding-top: 50px; }
+                .warning { color: red; font-weight: bold; }
+                .btn-container { margin-top: 20px; }
             </style>
         </head>
         <body>
-            <div class="container mt-4">
-                <a href="/dashboard" class="btn btn-secondary back-btn">← Back to Dashboard</a>
-             <form action="/update_service/${service.id}" method="post" enctype="multipart/form-data">
-                 <label class="form-label">Service Name:</label>
-                <input type="text" value="${service.name}" name="name" class="form-control" required>
-
-                <label class="form-label mt-2">Category:</label>
-                <select name="category" value="${service.category}" class="form-control" required>
-                    <option value="Events Management">Events Management</option>
-                    <option value="Catering">Catering</option>
-                    <option value="Jewelry Shop">Jewelry Shop</option>
-                    <option value="Tech Gadgets">Tech Gadgets</option>
-                    <option value="Plumbing">Plumbing</option>
-                </select>
-
-                <label class="form-label mt-2">Description:</label>
-                <textarea name="description" class="form-control" required>${service.description}</textarea>
-
-                <label class="form-label mt-2">Contact:</label>
-                <input type="text" value="${service.contact}" name="contact" class="form-control" required>
-
-                <label class="form-label mt-2">Base Image:</label>
-                <input type="file" name="base_image" class="form-control" required>
-
-                <label class="form-label mt-2">Additional Images:</label>
-                <input type="file" name="image1" class="form-control">
-                <input type="file" name="image2" class="form-control">
-                <input type="file" name="image3" class="form-control">
-
-                <label class="form-label mt-2">Social Media Handles (optional):</label>
-                <input type="text" value="${service.social_media}" name="social_media" class="form-control">
-
-                <label class="form-label mt-2">Website (optional):</label>
-                <input type="text" value="${service.website}" name="website" class="form-control">
-
-                 <button type="submit" class="btn btn-success w-100">Update Product </button>
-            </form>
+            <div class="container">
+                <h2>Are you sure you want to delete?</h2>
+                <p class="warning">"${product.name}" will be permanently removed.</p>
+                <div class="btn-container">
+                    <a href="/confirm_delete_product/${product.id}" class="btn btn-danger">Delete</a>
+                    <a href="/dashboard" class="btn btn-secondary">Cancel</a>
+                </div>
+            </div>
         </body>
         </html>`;
 
-        res.send(productDetailsHTML);
+        res.send(deleteConfirmHTML);
     });
 });
 
-app.post('/update_service/:id',upload.fields([
-    { name: 'base_image', maxCount: 1 },
-    { name: 'image1', maxCount: 1 },
-    { name: 'image2', maxCount: 1 },
-    { name: 'image3', maxCount: 1 }
-]), (req, res) => {
-       const base_image = req.files['base_image'] ? `/uploads/${req.files['base_image'][0].filename}` : null;
-    const image1 = req.files['image1'] ? `/uploads/${req.files['image1'][0].filename}` : null;
-    const image2 = req.files['image2'] ? `/uploads/${req.files['image2'][0].filename}` : null;
-    const image3 = req.files['image3'] ? `/uploads/${req.files['image3'][0].filename}` : null;
 
-const id=req.params.id
-    const { name, category,description ,location,contact} = req.body;
-   
-  console.log(name)
-    db.query(
-        'UPDATE services SET name = ?, category = ?, base_image= ?, contact= ?, description = ? WHERE id = ?',
-        [name, category, base_image, contact, description, id],
-        (err, result) => {
-            if (err) {
-                console.error('Update service Error:', err);
-                return res.status(500).json({ error: 'Error updating product' });
-            }
-            console.log('Update Result:', result);
-                        res.redirect("/my-products")
+app.get('/confirm_delete_product/:id', (req, res) => {
+    const productId = req.params.id;
+
+    // Step 1: Get the product details (including image URL)
+    db.query('SELECT * FROM products WHERE id = ?', [productId], (err, results) => {
+        if (err) {
+            console.error("Error fetching product:", err);
+            return res.status(500).send("Error fetching product details.");
         }
-       
-    );
-})
+        
+        if (results.length === 0) return res.send("Product not found");
+
+        const product = results[0];
+        const imageUrl = product.image;
+
+        // Step 2: Extract Cloudinary public ID (if image is stored on Cloudinary)
+        if (imageUrl.includes('cloudinary')) {
+            const publicId = imageUrl.split('/').pop().split('.')[0]; // Extracts the public ID from the URL
+
+            cloudinary.uploader.destroy(publicId, (cloudErr, cloudResult) => {
+                if (cloudErr) console.error("Cloudinary delete error:", cloudErr);
+                console.log("Cloudinary delete result:", cloudResult);
+
+                // Step 3: Delete the product from the database
+                db.query('DELETE FROM products WHERE id = ?', [productId], (dbErr, dbResult) => {
+                    if (dbErr) {
+                        console.error("Database delete error:", dbErr);
+                        return res.status(500).send("Error deleting product.");
+                    }
+
+                    console.log("Product deleted successfully.");
+                    res.redirect('/dashboard'); // Redirect after deletion
+                });
+            });
+        } else {
+            // If the image is stored locally, delete the product directly
+            db.query('DELETE FROM products WHERE id = ?', [productId], (dbErr, dbResult) => {
+                if (dbErr) {
+                    console.error("Database delete error:", dbErr);
+                    return res.status(500).send("Error deleting product.");
+                }
+
+                console.log("Product deleted successfully.");
+                res.redirect('/dashboard'); // Redirect after deletion
+            });
+        }
+    });
+});
+
+
 
 
 // Server Start
