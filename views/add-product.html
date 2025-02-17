@@ -1,13 +1,78 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Product - eBay Clone</title>
     <link rel="stylesheet" href="/styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .btn {
+            background-color: #4285F4;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background-color: #357ae8;
+        }
+
+        .mb-3 {
+            margin-bottom: 15px;
+        }
+
+        label {
+            font-weight: bold;
+            font-size: 14px;
+        }
+    </style>
 </head>
 <body>
-    <div class="container mt-4">
-        <div class="card shadow-sm p-4">
-            <h2 class="text-center">Add a New Product</h2>
+    <div class="container">
+        <div class="card">
+            <h2>Add a New Product</h2>
             <form action="/add_product" method="post" enctype="multipart/form-data">
                 <div class="mb-3">
                     <label>Product Name</label>
@@ -17,18 +82,17 @@
                     <label>Seller Location</label>
                     <input type="text" class="form-control" name="location" placeholder="Enter seller location" required>
                 </div>
-               <div class="mb-3">
-                        <select name="condition" class="form-control">
-                            <option value="Brand New">Brand New</option>
-                            <option value="Pre-owned">Pre-owned</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                    <label>Product description</label>
-                    
-                <textarea name="description" class="form-control" required></textarea>
-
-                   </div>
+                <div class="mb-3">
+                    <label>Condition</label>
+                    <select name="condition" class="form-control">
+                        <option value="Brand New">Brand New</option>
+                        <option value="Pre-owned">Pre-owned</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label>Product Description</label>
+                    <textarea name="description" class="form-control" rows="4" placeholder="Enter product details" required></textarea>
+                </div>
                 <div class="mb-3">
                     <label>Price (UGX)</label>
                     <input type="number" class="form-control" name="price" placeholder="Enter price" required>
@@ -37,9 +101,9 @@
                     <label>Product Image</label>
                     <input type="file" class="form-control" name="image" required>
                 </div>
-                <button type="submit" class="btn btn-success w-100">Add Product</button>
+                <button type="submit" class="btn">Add Product</button>
             </form>
         </div>
     </div>
 </body>
-</html>
+                </html>
