@@ -3,10 +3,7 @@
   "builds": [
     {
       "src": "vercel.js",
-      "use": "@vercel/node",
-      "config": {
-        "installCommand": "yarn install" // or "yarn install" if you use Yarn
-      }
+      "use": "@vercel/node"
     }
   ],
   "routes": [
