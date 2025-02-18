@@ -3,7 +3,10 @@
   "builds": [
     {
       "src": "vercel.js",
-      "use": "@vercel/node"
+      "use": "@vercel/node",
+      "config": {
+        "installCommand": "yarn add mysql2 passport multer path express passport-local paypal-rest-sdk dotenv body-parser bcryptjs express-session cloudinary multer-storage-cloudinary" // or "yarn install" if you use Yarn
+      }
     }
   ],
   "routes": [
