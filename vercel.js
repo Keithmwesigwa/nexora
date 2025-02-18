@@ -674,6 +674,9 @@ app.get('/confirm_delete_product/:id', (req, res) => {
 });
 
 
-
+app.listen(3000, () => {
+  console.log(`Server running at http://localhost:${PORT}`);
+});
+			    
 
 module.exports = app; // Export the app instead of listening
