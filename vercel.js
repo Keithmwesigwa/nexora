@@ -675,7 +675,7 @@ app.get('/confirm_delete_product/:id', (req, res) => {
 
 
 app.listen(3000, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
+  console.log(`Server running at http://localhost:3000`);
 });
 			    
 
