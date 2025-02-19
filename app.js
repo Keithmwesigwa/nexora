@@ -23,6 +23,7 @@ app.use(express.static(path.join(__dirname, 'views')));
 const db = mysql.createConnection({
     host: 'freedbeccom-nexora.h.aivencloud.com',
     user: 'avnadmin',
+	port:'14673',
     password: 'AVNS_rG5nsa4PxWCk-zHTBhl',
     
 });
