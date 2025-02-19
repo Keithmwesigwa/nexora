@@ -21,9 +21,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'views')));
 // Database Connection and Auto-Creation
 const db = mysql.createConnection({
-    host: 'sql.freedb.tech',
-    user: 'freedb_orign',
-    password: 'Km&z34Zqu6#JP8n',
+    host: 'postgresql://root:eJ2wM6MANPliB6qQ2PeKDGZtjclqNWnk@dpg-cuqtkobv2p9s73fjj3sg-a/freedb_eccom',
+    user: 'root',
+    password: 'eJ2wM6MANPliB6qQ2PeKDGZtjclqNWnk',
     
 });
 
