@@ -21,9 +21,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'views')));
 // Database Connection and Auto-Creation
 const db = mysql.createConnection({
-    host: 'sql.freedb.tech',
-    user: 'freedb_orign',
-    password: 'Km&z34Zqu6#JP8n',
+    host: 'freedbeccom-nexora.h.aivencloud.com',
+    user: 'avnadmin',
+	port:'14673',
+    password: 'AVNS_rG5nsa4PxWCk-zHTBhl',
     
 });
 
@@ -31,13 +32,13 @@ db.connect(err => {
     if (err) throw err;
     console.log('Connected to MySQL');
 
-    db.query("CREATE DATABASE IF NOT EXISTS freedb_eccom", (err) => {
+    db.query("CREATE DATABASE IF NOT EXISTS defaultdb", (err) => {
         if (err) throw err;
         console.log("Database created or exists");
 
-        db.changeUser({ database: 'freedb_eccom' }, (err) => {
+        db.changeUser({ database: 'defaultdb' }, (err) => {
             if (err) throw err;
-            
+               
 const createUsers = `
                 CREATE TABLE IF NOT EXISTS users (
                     id INT AUTO_INCREMENT PRIMARY KEY,
