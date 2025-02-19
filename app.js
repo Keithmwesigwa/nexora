@@ -21,9 +21,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'views')));
 // Database Connection and Auto-Creation
 const db = mysql.createConnection({
-    host: 'postgresql://root:eJ2wM6MANPliB6qQ2PeKDGZtjclqNWnk@dpg-cuqtkobv2p9s73fjj3sg-a/freedb_eccom',
-    user: 'root',
-    password: 'eJ2wM6MANPliB6qQ2PeKDGZtjclqNWnk',
+    host: 'freedbeccom-nexora.h.aivencloud.com',
+    user: 'avnadmin',
+    password: 'AVNS_rG5nsa4PxWCk-zHTBhl',
     
 });
 
@@ -31,11 +31,11 @@ db.connect(err => {
     if (err) throw err;
     console.log('Connected to MySQL');
 
-    db.query("CREATE DATABASE IF NOT EXISTS freedb_eccom", (err) => {
+    db.query("CREATE DATABASE IF NOT EXISTS defaultdb", (err) => {
         if (err) throw err;
         console.log("Database created or exists");
 
-        db.changeUser({ database: 'freedb_eccom' }, (err) => {
+        db.changeUser({ database: 'defaultdb' }, (err) => {
             if (err) throw err;
             
       const createUsers = `
