@@ -19,12 +19,12 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'views')));
-// Database Connection and Auto-Creation
 const db = mysql.createConnection({
     host: 'freedbeccom-nexora.h.aivencloud.com',
     user: 'avnadmin',
 	port:'14673',
     password: 'AVNS_rG5nsa4PxWCk-zHTBhl',
+    
     
 });
 
@@ -39,13 +39,15 @@ db.connect(err => {
         db.changeUser({ database: 'defaultdb' }, (err) => {
             if (err) throw err;
             
-      const createUsers = `
+            const createUsers = `
                 CREATE TABLE IF NOT EXISTS users (
                     id INT AUTO_INCREMENT PRIMARY KEY,
                     username VARCHAR(50) NOT NULL UNIQUE,
                     email VARCHAR(100) NOT NULL UNIQUE,
                     password VARCHAR(255) NOT NULL,
-                    role ENUM('customer', 'seller') NOT NULL
+                    user_contact VARCHAR(50) NOT NULL,
+                    seller_status VARCHAR(50) NOT NULL,
+                    account_status VARCHAR(50) NOT NULL
                 )
             `;
 
@@ -63,8 +65,10 @@ db.connect(err => {
                     product_condition TEXT,
                     price DECIMAL(10,2) NOT NULL,
                     image VARCHAR(255),
-                    category ENUM('product', 'service') NOT NULL
-                    )
+                    product_category TEXT,
+                    product_brand TEXT,
+                    product_rating INT CHECK (product_rating BETWEEN 1 AND 5)
+                   )
             `;
 
             const createReviews = `
@@ -83,26 +87,8 @@ db.connect(err => {
 
             console.log("Tables created or already exist");
             
-            db.query(`
-    CREATE TABLE IF NOT EXISTS services (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        name VARCHAR(255) NOT NULL,
-        category VARCHAR(255) NOT NULL,
-        description TEXT NOT NULL,
-        base_image VARCHAR(255),
-        image1 VARCHAR(255),
-        image2 VARCHAR(255),
-        image3 VARCHAR(255),
-        contact VARCHAR(255) NOT NULL,
-        social_media TEXT,
-        website VARCHAR(255),
-        seller_user TEXT
-        
-    )
-`, (err) => {
-    if (err) throw err;
-    console.log("Services table ready.");
-});
+            
+            
             
             
             
@@ -135,11 +121,11 @@ app.get('/login', (req, res) => res.sendFile(path.join(__dirname, 'views', 'logi
 app.get('/register', (req, res) => res.sendFile(path.join(__dirname, 'views', 'register.html')));
 
 app.post('/register', (req, res) => {
-    const { username, email, password, role } = req.body;
+    const { username, email, password, contact} = req.body;
         
     bcrypt.hash(password, 10, (err, hash) => {
-        db.query('INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)', 
-            [username, email, hash, role], (err, result) => {
+        db.query('INSERT INTO users (username, email, password, user_contact, seller_status, account_status) VALUES (?, ?, ?, ?, ?, ?)', 
+            [username, email, hash, contact, 'not verified', 'not verified'], (err, result) => {
             if (err) throw err;
             res.redirect('/login');
         });
@@ -172,13 +158,13 @@ const upload = multer({ storage });
 
 
 app.post('/add_product', upload.single('image'), (req, res) => {
-    const { name, price, description, location, condition } = req.body;
+    const { name, price, description, location, condition, category, brand } = req.body;
     const image = req.file ? req.file.path : null; // Cloudinary URL
 
     const seller_user = req.user.username;
 
-    const sql = 'INSERT INTO products (name, price, image, seller_user, description, product_location, product_condition) VALUES (?, ?, ?, ?, ?, ?, ?)';
-    db.query(sql, [name, price, image, seller_user, description, location, condition], (err) => {
+    const sql = 'INSERT INTO products (name, price, image, seller_user, description, product_location, product_condition, product_category, product_brand, product_rating) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+    db.query(sql, [name, price, image, seller_user, description, location, condition, category, brand,5], (err) => {
         if (err) throw err;
         res.redirect('/dashboard');
     });
@@ -188,13 +174,10 @@ app.post('/add_product', upload.single('image'), (req, res) => {
 app.get('/dashboard', (req, res) => {
 
     db.query('SELECT * FROM products', (err, products) => {
-        if (err) throw err;
-
-        db.query('SELECT * FROM services', (err, services) => {
-            if (err) throw err;
+        if (err) throw err        
 
             res.sendFile(__dirname + "/views/dashboard.html"); // Load the HTML file
-        });
+       
     });
 });
 app.get('/api/dashboard', (req, res) => {
@@ -292,7 +275,7 @@ app.get('/product/:id', (req, res) => {
                 <!-- Price & Category -->
                 <div class="price-section">
                     <span class="price">UGX ${product.price}</span>
-                    <span class="badge">${product.category || "Category"}</span>
+                    <span class="badge">${product.product_category || "Category"}</span>
                 </div>
 
                 <!-- Sections -->
@@ -304,7 +287,7 @@ app.get('/product/:id', (req, res) => {
                 <div class="row-section">
                     <div>
                         <div class="section-title"><i class="fas fa-industry icon"></i> Brand</div>
-                        <p>${product.brand || "No information available."}</p>
+                        <p>${product.product_brand || "No information available."}</p>
                     </div>
                     <div>
                         <div class="section-title"><i class="fas fa-box icon"></i> Condition</div>
@@ -345,37 +328,92 @@ app.get('/add_product', (req, res) => {
 
 
 
-
-
-
 app.get('/search', (req, res) => {
-    const query = req.query.query;
+    const query = req.query.query || '';
+    const minPrice = req.query.minPrice || 0;
+    const maxPrice = req.query.maxPrice || 1000000;
+    const condition = req.query.condition || '%';
 
-    db.query(`SELECT * FROM products WHERE name LIKE ?`, [`%${query}%`], (err, productResults) => {
+    const sql = `SELECT * FROM products WHERE name LIKE ? AND price BETWEEN ? AND ? AND product_condition LIKE ?`;
+    db.query(sql, [`%${query}%`, minPrice, maxPrice, condition], (err, productResults) => {
         if (err) throw err;
 
-        
-            let productHTML = productResults.map(product => `
-                <div class="col-6 col-md-4 col-lg-3 mb-3">
-                    <a href="/product/${product.id}" class="text-decoration-none">
-                        <div class="card shadow-sm">
-                            <img src="${product.image}" class="card-img-top" style="height: 180px; object-fit: cover;">
-                            <div class="card-body text-center">
-                                <h6 class="card-title">${product.name}</h6>
-                                <p class="card-text text-success fw-bold">UGX ${product.price}</p>
+        let productHTML = productResults.map(product => `
+            <div class="card search-result-card mb-2 p-2">
+                <div class="row g-2 align-items-center">
+                    <div class="col-4">
+                        <a href="/product/${product.id}" class="d-block">
+                            <img src="${product.image}" class="img-fluid rounded shadow-sm product-image">
+                        </a>
+                    </div>
+                    <div class="col-8 d-flex flex-column justify-content-between">
+                        <a href="/product/${product.id}" class="text-decoration-none text-dark">
+                            <p class=" product-title">${product.name}</p>
+                        </a>
+                        <p class="text-black fw-bold fs-6 mb-1">UGX ${product.price.toLocaleString()}</p>
+                        <p class="badge text-start">${product.product_condition}</p>
+                        <a href="/product/${product.id}" class="btn btn-sm btn-outline-primary mt-2">View</a>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+
+        res.send(`
+            <html>
+            <head>
+                <meta name="viewport" content="width=device-width, initial-scale=1">
+                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+                <style>
+                    body { font-family: Arial, sans-serif; background-color: #f8f9fa; }
+                    .search-container { max-width: 95%; margin: auto; padding-top: 10px; }
+                    .search-result-card { border-radius: 8px; background: white; transition: box-shadow 0.2s; }
+                    .search-result-card:hover { box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); }
+                    .product-title { font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+                    .search-filters { background: white; padding: 10px 15px; border-radius:5px; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1); }
+                    .product-image { height: 100px; object-fit: cover; width: 100%; }
+                    @media (max-width: 576px) {
+                        .product-title { font-size: 1.2rem;margin-bottom:2px;font-family:Arial;color:#616161;font-weight:500; }
+                        .product-image { height: 80px; }
+                        .btn-outline-primary { padding: 5px 10px; font-size: 0.8rem; }
+                    .badge{color:#757575;background-color:white;font-size:14px;font-weight:400;}
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="search-container">
+                    <h4 class="mb-3 text-center">Search Results for ${query}</h4>
+
+                    <!-- Filter Section -->
+                    <form action="/search" method="GET" class="search-filters mb-3">
+                        <input type="hidden" name="query" value="${query}">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <input type="number" name="minPrice" class="form-control" placeholder="Min Price" value="">
+                            </div>
+                            <div class="col-6">
+                                <input type="number" name="maxPrice" class="form-control" placeholder="Max Price" value="">
+                            </div>
+                            <div class="col-6">
+                                <select name="condition" class="form-select">
+                                    <option value="%">All Conditions</option>
+                                    <option value="New" ${condition === 'Brand New' ? 'selected' : ''}>New</option>
+                                    <option value="Used" ${condition === 'Pre owned' ? 'selected' : ''}>Used</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <button type="submit" class="btn btn-primary w-100">Apply</button>
                             </div>
                         </div>
-                    </a>
+                    </form>
+
+                    <!-- Results -->
+                    ${productResults.length > 0 ? productHTML : '<p class="text-muted text-center">No results found.</p>'}
                 </div>
-            `).join('');
-
-           
-
-            res.send(`<div class="container"><h4>Search Results</h4>${productHTML}</div>`);
-      
+            </body>
+            </html>
+        `);
     });
 });
-
 
 
 app.get('/my-products', (req, res) => {
@@ -386,9 +424,7 @@ app.get('/my-products', (req, res) => {
     const userId = req.user.username;
 
     db.query('SELECT * FROM products WHERE seller_user = ?', [userId], (err, products) => {
-        if (err) throw err;
-
-        
+        if (err) throw err;        
 
             // ✅ Build HTML response dynamically
             let html = `
@@ -436,26 +472,19 @@ app.get('/my-products', (req, res) => {
                         <a href="/edit_product/${product.id}" class="text-decoration-none"> <button >✏ Edit</button></a>
                        <a href="/delete_product/${product.id}" class="text-decoration-none"> <button>🗑 Delete</button></a>
                     </div>`;
-            });
-
-            
-            
+            });                       
 
             html += `
                     </div>
                     <div class="buttons">
                         <a href="/add_product" class="add-btn">➕ Add Product</a>
                       </div>
-                </div>`
-                
+                </div>`                
                 res.send(html)
                 
+})                
 
 })
-                
-
-})
-
   
   app.post('/update_product/:id', upload.single('image'), (req, res) => {
     const id = req.params.id;
