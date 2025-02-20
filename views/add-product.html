@@ -90,6 +90,24 @@
                     </select>
                 </div>
                 <div class="mb-3">
+                    <label>Category</label>
+                    <select name="category" class="form-control">
+                        <option value="Men">Men Clothing</option>
+                        <option value="Women">Women Clothing</option>
+                        <option value="Kids">Kids Clothing</option>
+                        <option value="Watches">Watches</option>
+                        
+           <option value="Sport">Sports Clothes</option>
+                        <option value="Shoes">Shoes</option>
+                        <option value="Fitness">Fitnness equipment</option>
+                                    
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label>Product Brand</label>
+                    <input type="text" class="form-control" name="brand" placeholder="Enter product brand e.g Nike" >
+                </div>
+                <div class="mb-3">
                     <label>Product Description</label>
                     <textarea name="description" class="form-control" rows="4" placeholder="Enter product details" required></textarea>
                 </div>
@@ -98,12 +116,34 @@
                     <input type="number" class="form-control" name="price" placeholder="Enter price" required>
                 </div>
                 <div class="mb-3">
-                    <label>Product Image</label>
-                    <input type="file" class="form-control" name="image" required>
-                </div>
+    <label>Product Image</label>
+    <input type="file" class="form-control" name="image" id="imageInput" required>
+    <!-- Image preview container -->
+    <img id="imagePreview" src="#" alt="Image Preview" style="display: none; max-width: 100%; margin-top: 10px;">
+</div>
                 <button type="submit" class="btn">Add Product</button>
             </form>
         </div>
     </div>
+    <script>
+    // Add an event listener to the file input
+    document.getElementById('imageInput').addEventListener('change', function(event) {
+        const file = event.target.files[0]; // Get the selected file
+        const reader = new FileReader(); // Create a FileReader object
+
+        // Set up the FileReader onload event
+        reader.onload = function(e) {
+            const imagePreview = document.getElementById('imagePreview');
+            imagePreview.src = e.target.result; // Set the image source to the file data
+            imagePreview.style.display = 'block'; // Show the image preview
+        };
+
+        // Read the file as a data URL
+        if (file) {
+            reader.readAsDataURL(file);
+        }
+    });
+</script>
+    
 </body>
-                </html>
+</html>
