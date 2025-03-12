@@ -52,11 +52,11 @@ db.connect(err => {
     if (err) throw err;
     console.log('Connected to MySQL');
 
-    db.query("CREATE DATABASE IF NOT EXISTS ecommercen", (err) => {
+    db.query("CREATE DATABASE IF NOT EXISTS defaultdb", (err) => {
         if (err) throw err;
         console.log("Database created or exists");
 
-        db.changeUser({ database: 'ecommercen' }, (err) => {
+        db.changeUser({ database: 'defaultdb' }, (err) => {
             if (err) throw err;
             
             const createUsers = `
@@ -1401,6 +1401,9 @@ console.log("color"+color+size)
     });
 });
 app.get('/cart/get', (req, res) => {
+    if (!req.isAuthenticated()) {
+        return res.redirect('/login');
+    }
     const user_id = req.user.username;
 
     const checkQuery = 'SELECT * FROM cart WHERE username = ?';
