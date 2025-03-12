@@ -79,15 +79,12 @@
                     <input type="text" class="form-control" name="name" placeholder="Enter product name" required>
                 </div>
                 <div class="mb-3">
-                    <label>Seller Location</label>
-                    <input type="text" class="form-control" name="location" placeholder="Enter seller location" required>
+                    <label>Product Sizes</label>
+                    <input type="text" class="form-control" name="sizes" placeholder="Enter product sizes" required>
                 </div>
                 <div class="mb-3">
-                    <label>Condition</label>
-                    <select name="condition" class="form-control">
-                        <option value="Brand New">Brand New</option>
-                        <option value="Pre-owned">Pre-owned</option>
-                    </select>
+                    <label>Product Colors</label>
+                    <input type="text" class="form-control" name="colours" placeholder="Enter product colour e.g Blue,Red" >
                 </div>
                 <div class="mb-3">
                     <label>Category</label>
@@ -121,6 +118,10 @@
     <!-- Image preview container -->
     <img id="imagePreview" src="#" alt="Image Preview" style="display: none; max-width: 100%; margin-top: 10px;">
 </div>
+<label class="form-label mt-2">Additional Images:</label>
+                <input type="file" name="image2" class="form-control">
+                <input type="file" name="image3" class="form-control">
+                <input type="file" name="image4" class="form-control">
                 <button type="submit" class="btn">Add Product</button>
             </form>
         </div>
