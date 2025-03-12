@@ -31,8 +31,22 @@
         .sidebar.active { left: 0; }
         .sidebar ul { list-style: none; padding: 0; margin: 0; }
         .sidebar ul li { padding: 15px 20px; border-bottom: 1px solid #ddd; }
-        .sidebar ul li a { text-decoration: none; color: #333; display: flex; align-items: center; }
+        .sidebar ul li a { 
+            text-decoration: none; 
+            color: #333; 
+            display: flex; 
+            align-items: center; 
+            transition: 0.2s;
+        }
         .sidebar ul li a i { margin-right: 10px; }
+        .sidebar ul li a:hover { color: #007bff; }
+        .sidebar ul li a.active { 
+            color: #007bff; 
+            font-weight: bold; 
+            background: #f0f8ff; 
+            border-radius: 5px;
+            padding:8px;
+        }
 
         /* Overlay */
         .overlay {
@@ -70,7 +84,20 @@
             margin-left: auto; 
             color: white; 
             font-size: 24px; 
+            position: relative;
         }
+        .navbar .cart-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #007bff; /* Changed to blue */
+            color: white;
+            font-size: 12px;
+            padding: 2px 6px;
+            border-radius: 50%;
+            display: none; /* Hidden by default */
+        }
+        .navbar .cart-count.show { display: block; } /* Show when count > 0 */
         .navbar .navbar-brand { 
             color: white; 
             font-size: 20px; 
@@ -114,12 +141,17 @@
         }
 
         /* Category Section */
+        .categories-container {
+            position: relative;
+        }
         .categories { 
             display: flex; 
             overflow-x: auto; 
             gap: 15px; 
             padding: 10px 0; 
+            scroll-behavior: smooth;
         }
+        .categories::-webkit-scrollbar { display: none; } /* Hide scrollbar */
         .category-card {
             min-width: 120px;
             height: 120px;
@@ -142,6 +174,28 @@
             margin: 8px 0 0; 
             font-weight: 500; 
             font-size: 14px; 
+        }
+
+        /* Scroll Buttons */
+        .scroll-button {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.8);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            display: none; /* Hidden by default */
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .scroll-button.left { left: -20px; }
+        .scroll-button.right { right: -20px; }
+        @media (min-width: 769px) {
+            .scroll-button { display: flex; } /* Show on desktop */
         }
 
         /* Section Title */
@@ -206,6 +260,12 @@
             margin: 0 10px;
             font-size: 14px;
         }
+         .categories a {
+            color: black;
+            text-decoration: none;
+            margin: 0 4px;
+            font-size: 14px;
+        }
         .footer-links a:hover { text-decoration: underline; }
 
         /* Responsive Adjustments */
@@ -226,15 +286,22 @@
     <nav class="navbar">
         <span class="menu-icon" onclick="toggleMenu()"><i class="fas fa-bars"></i></span>
         <span class="navbar-brand">Nexora</span>
-        <span class="cart-icon" onclick="openCart()"><i class="fas fa-shopping-cart"></i></span>
+        <a href="/cart/get">
+            <span class="cart-icon">
+                <i class="fas fa-shopping-cart"></i>
+                <span class="cart-count" id="cart-count">0</span>
+            </span>
+        </a>
     </nav>
 
     <!-- Sidebar -->
     <div id="sidebar-menu" class="sidebar">
         <ul>
-            <li><a href="/my-products"><i class="fas fa-box"></i> My Products</a></li>
-            <li><a href="/logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
-            <li><a href="/about"><i class="fas fa-info-circle"></i> About</a></li>
+            
+            <li><a class="active" href="/dashboard"><i class="fas fa-home"></i>Home</a></li>
+            <li><a href="/my-products" ><i class="fas fa-box"></i>Sell</a></li>
+            <li><a href="/orders"><i class="fas fa-truck"></i>My Orders</a></li>
+            <li><a href="/tac"><i class="fas fa-file-contract"></i> Terms and Conditions</a></li>
         </ul>
     </div>
 
@@ -259,31 +326,47 @@
 
         <!-- Product Categories -->
         <h5 class="section-title">Shop by Category</h5>
-        <div class="categories">
-            <div class="category-card">
-                <img src="images/men.jpeg" alt="Men">
-                <p>Men</p>
+        <div class="categories-container">
+            <button class="scroll-button left" onclick="scrollCategories(-1)"><i class="fas fa-chevron-left"></i></button>
+            <div class="categories">
+                <a href="/search?query=&minPrice=0&maxPrice=1000000&condition=Men">
+                    <div class="category-card">
+                        <img src="images/men.jpeg" alt="Men">
+                        <p>Men</p>
+                    </div>
+                </a>
+                <a href="/search?query=&minPrice=0&maxPrice=1000000&condition=women">
+                    <div class="category-card">
+                        <img src="images/women.jpeg" alt="Women">
+                        <p>Women</p>
+                    </div>
+                </a>
+                <a href="/search?query=&minPrice=0&maxPrice=1000000&condition=Watches">
+                    <div class="category-card">
+                        <img src="images/watch.jpeg" alt="Watch">
+                        <p>Watches</p>
+                    </div>
+                </a>
+                <a href="/search?query=&minPrice=0&maxPrice=1000000&condition=Kids">
+                    <div class="category-card">
+                        <img src="images/kids.jpeg" alt="Kids">
+                        <p>Kids</p>
+                    </div>
+                </a>
+                <a href="/search?query=&minPrice=0&maxPrice=1000000&condition=Shoes">
+                    <div class="category-card">
+                        <img src="images/shoes.jpeg" alt="Shoes">
+                        <p>Shoes</p>
+                    </div>
+                </a>
+                <a href="/search?query=&minPrice=0&maxPrice=1000000&condition=Bags">
+                    <div class="category-card">
+                        <img src="images/handbag.jpeg" alt="Suggest">
+                        <p>Bags</p>
+                    </div>
+                </a>
             </div>
-            <div class="category-card">
-                <img src="images/women.jpeg" alt="Women">
-                <p>Women</p>
-            </div>
-            <div class="category-card">
-                <img src="images/watch.jpeg" alt="Watch">
-                <p>Watches</p>
-            </div>
-            <div class="category-card">
-                <img src="images/kids.jpeg" alt="Kids">
-                <p>Kids</p>
-            </div>
-            <div class="category-card">
-                <img src="images/shoes.jpeg" alt="Shoes">
-                <p>Shoes</p>
-            </div>
-            <div class="category-card">
-                <img src="images/sportswear.jpeg" alt="Suggest">
-                <p>Sports wear</p>
-            </div>
+            <button class="scroll-button right" onclick="scrollCategories(1)"><i class="fas fa-chevron-right"></i></button>
         </div>
 
         <!-- Trending Products -->
@@ -316,17 +399,24 @@
             overlay.classList.toggle('active');
         }
 
-        // Open Cart
-        function openCart() {
-            alert("Cart functionality to be implemented.");
-        }
+        // Highlight Active Link in Sidebar
+        const sidebarLinks = document.querySelectorAll('.sidebar ul li a');
+        sidebarLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                sidebarLinks.forEach(l => l.classList.remove('active'));
+                link.classList.add('active');
+            });
+        });
 
-        // Fetch Trending Products
+        // Fetch Trending Products (Limit to 12)
         async function fetchDashboardData() {
             const res = await fetch('/api/dashboard');
             const data = await res.json();
 
-            let productHTML = data.products.map(product => `
+            // Limit products to 12
+            const products = data.products.slice(0, 12);
+
+            let productHTML = products.map(product => `
                 <div class="col-6 col-md-4 col-lg-3 mb-3">
                     <a href="/product/${product.id}" class="text-decoration-none">
                         <div class="card">
@@ -343,10 +433,37 @@
             document.getElementById('product-list').innerHTML = productHTML;
         }
 
+        // Fetch Cart Count
+        async function fetchCartCount() {
+            try {
+                const res = await fetch('/api/cart/count');
+                const data = await res.json();
+                const cartCount = document.getElementById('cart-count');
+                if (data.count > 0) {
+                    cartCount.textContent = data.count;
+                    cartCount.classList.add('show');
+                } else {
+                    cartCount.classList.remove('show');
+                }
+            } catch (error) {
+                console.error('Error fetching cart count:', error);
+            }
+        }
+
+        // Scroll Categories
+        function scrollCategories(direction) {
+            const categories = document.querySelector('.categories');
+            const scrollAmount = 200; // Adjust scroll amount as needed
+            categories.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
+        }
+
         // Load Data on Page Load
-        document.addEventListener("DOMContentLoaded", fetchDashboardData);
+        document.addEventListener("DOMContentLoaded", () => {
+            fetchDashboardData();
+            fetchCartCount();
+        });
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
-</html>
+    </html>
